@@ -1,10 +1,18 @@
 package org.min.graph;
 
 import java.util.*;
-
+/**
+ * @author Qing Min (Bernard)
+ * @email bravebear922@gmail.com
+ * @Date
+ * @Version 1.00
+ */
 public class MyGraph<V, E> implements Graph<V, E> {
+    // save all the vertices
     Map<V, Vertex<V, E>> vertices = new HashMap<>();
+    // save all the edges
     Set<Edge<V, E>> edges = new HashSet<>();
+
 
     private static class Vertex<V, E > {
         V value;
@@ -80,7 +88,21 @@ public class MyGraph<V, E> implements Graph<V, E> {
 
     @Override
     public void removeVertex(V v) {
+        Vertex<V, E> vertex = new Vertex<>(v);
+        List<Edge<V, E>> list = new ArrayList<>();
+        edges.forEach(edge -> {
+            if (Objects.equals(edge.to, vertex)) {
+                list.add(edge);
+            }
 
+            if (Objects.equals(edge.from, vertex)) {
+                list.add(edge);
+            }
+        });
+        list.forEach(edgeToRemove -> {
+            edges.remove(edgeToRemove);
+        });
+        vertices.remove(vertex.value);
     }
 
     @Override
@@ -107,21 +129,73 @@ public class MyGraph<V, E> implements Graph<V, E> {
         Edge<V, E> edge = new Edge<>(fromVertex, toVertex);
         if (fromVertex.toEdge.contains(edge)) {
             fromVertex.toEdge.remove(edge);
-            fromVertex.fromEdge.remove(edge);
+            toVertex.fromEdge.remove(edge);
             edges.remove(edge);
             edge.weight = weight;
             fromVertex.toEdge.add(edge);
-            fromVertex.fromEdge.add(edge);
+            toVertex.fromEdge.add(edge);
             edges.add(edge);
         } else {
             edge.weight = weight;
+            fromVertex.toEdge.add(edge);
+            toVertex.fromEdge.add(edge);
             edges.add(edge);
         }
     }
 
     @Override
     public void removeEdge(V from, V to) {
+        Vertex<V, E> fromVertex = vertices.get(from);
+        Vertex<V, E> toVertex = vertices.get(to);
+        if (fromVertex == null || toVertex == null) return;
+        Edge<V, E> edge = new Edge<>(fromVertex, toVertex);
+        if (fromVertex.toEdge.contains(edge)) {
+            fromVertex.toEdge.remove(edge);
+            toVertex.fromEdge.remove(edge);
+            edges.remove(edge);
+        }
+    }
 
+    @Override
+    public void bfs(V first) {
+        System.out.println("bfs start====");
+        Vertex<V, E> firstVertex = vertices.get(first);
+        if (firstVertex == null) return;
+        Set<Vertex<V, E>> visitedList = new HashSet<>();
+        Queue<Vertex<V, E>> queue = new LinkedList<>();
+        visitedList.add(firstVertex);
+        queue.offer(firstVertex);
+
+        while ( !queue.isEmpty()) {
+            Vertex<V, E> vertex = queue.poll();
+            System.out.println(vertex.value);
+            vertex.toEdge.forEach(edge -> {
+                if (!visitedList.contains(edge.to)) {
+                    queue.offer(edge.to);
+                    visitedList.add(edge.to);
+                }
+            });
+        }
+        System.out.println("bfs end====");
+    }
+
+    @Override
+    public void dfs(V first) {
+        System.out.println("dfs start====");
+        Vertex<V, E> firstVertex = vertices.get(first);
+        if (firstVertex == null) return;
+        dfs(firstVertex, new HashSet<>());
+        System.out.println("dfs end====");
+    }
+
+    public void dfs(Vertex<V, E> v, Set<Vertex<V, E>> visitedVertex) {
+        System.out.println(v.value);
+        visitedVertex.add(v);
+
+        for(Edge<V, E> edge : v.toEdge)
+            if (!visitedVertex.contains(edge.to)) {
+                dfs(edge.to, visitedVertex);
+            }
     }
 
     @Override
